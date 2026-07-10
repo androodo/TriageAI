@@ -1,0 +1,104 @@
+name: BuildLens AI CI Demo
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests and capture output
+        id: pytest
+        run: |
+          pytest -v --tb=short --color=no 2>&1 | tee pytest-output.log
+        continue-on-error: true
+
+      - name: Parse pytest results
+        id: parse
+        run: |
+          # Extract key metrics from pytest output
+          FAILED=$(grep "FAILED" pytest-output.log | wc -l || echo "0")
+          PASSED=$(grep "passed" pytest-output.log | awk '{print $1}')
+          TOTAL=$(($FAILED + ${PASSED:-0}))
+          STATUS="passed"
+          if [ $FAILED -gt 0 ]; then
+            STATUS="failed"
+          fi
+
+          # Store outputs for next step
+          echo "failed_tests=$FAILED" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "total_tests=$TOTAL" >> $GITHUB_OUTPUT
+
+      - name: Send to BuildLens AI
+        if: always()
+        run: |
+          REPO_NAME=${{ github.repository }}
+          BRANCH=${{ github.ref_name }}
+          COMMIT_SHA=${{ github.sha }}
+          PIPELINE_ID="${{ github.run_id }}"
+          ENVIRONMENT="ci-demo"
+          STATUS="${{ steps.parse.outputs.status }}"
+
+          # Build failed test names
+          FAILED_TESTS=$(grep "FAILED" pytest-output.log | awk '{print $2}' | sed 's/\\n/,/g' | tr '\n' ',' | sed 's/,$//')
+
+          # Read log text
+          LOG_TEXT=$(cat pytest-output.log)
+
+          # Build JSON payload
+          PAYLOAD=$(jq -n \
+            --arg repo_name "$REPO_NAME" \
+            --arg branch "$BRANCH" \
+            --arg commit_sha "$COMMIT_SHA" \
+            --arg pipeline_id "$PIPELINE_ID" \
+            --arg environment "$ENVIRONMENT" \
+            --arg status "$STATUS" \
+            --arg test_suite_name "unit" \
+            --arg failed_test_names "$FAILED_TESTS" \
+            --arg raw_log_text "$LOG_TEXT" \
+            '{
+              repo_name: $repo_name,
+              branch: $branch,
+              commit_sha: $commit_sha,
+              pipeline_id: $pipeline_id,
+              environment: $environment,
+              status: $status,
+              test_suite_name: $test_suite_name,
+              failed_test_names: ($failed_test_names // "" | split(",")),
+              timestamp: now,
+              raw_log_text: $raw_log_text
+            }')
+
+          echo "Payload:"
+          echo "$PAYLOAD" | jq '.'
+
+          # Send to BuildLens ingestion API
+          BUILDLENS_URL="${{ secrets.BUILDLENS_API_URL }}"
+          if [ -n "$BUILDLENS_URL" ]; then
+            echo "Sending CI run to BuildLens AI at $BUILDLENS_URL..."
+            curl -X POST "${BUILDLENS_URL}/api/runs/ingest" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              || echo "Failed to send to BuildLens, continuing..."
+          else
+            echo "BUILDLENS_API_URL not configured, skipping ingestion."
+            echo "To enable, add BUILDLENS_API_URL secret (e.g., http://localhost:8000 for local demo)"
+          fi

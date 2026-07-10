@@ -1,0 +1,112 @@
+[
+  {
+    "repo_name": "acme/checkout-service",
+    "branch": "main",
+    "commit_sha": "a3f8c2d9e1b7f4a6c8d2e1b9a4f3c7d2e1b9a4f3c",
+    "pipeline_id": "github-12345",
+    "environment": "production",
+    "status": "failed",
+    "test_suite_name": "integration",
+    "failed_test_names": ["test_payment_flow", "test_checkout_timeout"],
+    "timestamp": "2025-01-10T09:15:00Z",
+    "raw_log_text": "FAILED tests/test_payment.py::test_payment_flow\nTraceback (most recent call last):\n  File \"tests/test_payment.py\", line 42, in test_payment_flow\n    response = client.post(\"/checkout\", json={\"amount\": 100})\n  File \"app/api.py\", line 88, in post\n    raise ConnectionError(\"Payment gateway unreachable\")\nConnectionError: Payment gateway unreachable\n\ntest_checkout_timeout\n  File \"tests/test_payment.py\", line 67, in test_checkout_timeout\n    assert response.elapsed.total_seconds() < 5\nE   AssertionError: assert 12.345 < 5\n\n2 failed, 45 passed in 67.23s",
+    "triage": {
+      "failure_category": "infrastructure_environment_failure",
+      "confidence_score": 0.92,
+      "summary": "Payment service integration test failed due to unreachable upstream gateway",
+      "root_cause": "The payment gateway service at gateway.acme.com is returning ConnectionError, indicating either network routing issues or the service being down in the production environment.",
+      "suggested_steps": ["1. Check payment gateway status page at gateway.acme.com/status", "2. Verify network connectivity from production pods", "3. Check recent deployments to the gateway service", "4. Review load balancer target group health"],
+      "owner_guess": "platform-infra",
+      "issue_title": "[CI] Payment gateway unreachable in production integration tests",
+      "issue_body": "## Summary\nIntegration tests against the payment flow are failing with `ConnectionError: Payment gateway unreachable`. Two tests are affected: `test_payment_flow` and `test_checkout_timeout`.\n\n## Root Cause\nThe payment gateway service appears to be unreachable from the production test environment. This is an infrastructure issue, not a code bug.\n\n## Steps to Reproduce\n1. Run `pytest tests/test_payment.py -v`\n2. Observe ConnectionError on test_payment_flow\n3. Observe timeout on test_checkout_timeout (12s instead of <5s)\n\n## Expected vs Actual\n- Expected: Payment requests succeed with HTTP 200\n- Actual: ConnectionError raised, requests timeout\n\n## Suggested Fix\n1. Check payment gateway health at gateway.acme.com/status\n2. Verify EKS cluster can reach the gateway endpoint\n3. Check CloudWatch for network errors\n4. Engage platform-infra team if issue persists"
+    }
+  },
+  {
+    "repo_name": "acme/user-service",
+    "branch": "feat/add-profile-pictures",
+    "commit_sha": "b7d4e2f1a8c3b9d5e6f1a2b8c4d3e6f1a2b8c4d3e",
+    "pipeline_id": "github-12346",
+    "environment": "staging",
+    "status": "failed",
+    "test_suite_name": "unit",
+    "failed_test_names": ["test_profile_picture_upload", "test_profile_picture_validation"],
+    "timestamp": "2025-01-11T14:30:00Z",
+    "raw_log_text": "FAILED tests/test_profile.py::test_profile_picture_upload\nError: AssertionError: assert 'uploads/abc123.jpg' == 'uploads/def456.jpg'\nE   +  where 'uploads/abc123.jpg' = <ProfilePictureUpload object>.path\n\ntest_profile_picture_validation\n  File \"app/profile.py\", line 234, in validate_picture\n    raise ValueError(\"Image dimensions must be at least 200x200px\")\nValueError: Image dimensions must be at least 200x200px\n\n2 failed, 23 passed in 12.4s",
+    "triage": {
+      "failure_category": "application_code_bug",
+      "confidence_score": 0.87,
+      "summary": "Profile picture upload logic generates incorrect file paths and rejects valid images",
+      "root_cause": "The file path generation logic in ProfilePictureUpload.path uses a hardcoded prefix instead of the actual uploaded file ID. Additionally, the dimension validation is checking the wrong threshold (200px instead of 100px per spec).",
+      "suggested_steps": ["1. Update ProfilePictureUpload.path to use self.file_id", "2. Fix dimension check threshold to 100x100 per product spec", "3. Add integration test for the upload flow", "4. Check if image validation library is correctly reading dimensions"],
+      "owner_guess": "frontend-team",
+      "issue_title": "[CI] Profile picture upload generates wrong path and validates incorrectly",
+      "issue_body": "## Summary\nProfile picture upload tests are failing due to incorrect file path generation and incorrect dimension validation thresholds.\n\n## Root Cause\nTwo bugs identified:\n1. `ProfilePictureUpload.path` uses `uploads/abc123.jpg` instead of deriving the path from `self.file_id`\n2. `validate_picture()` checks for 200x200px minimum but the spec says 100x100px\n\n## Files to Review\n- `app/profile.py:234` - dimension validation\n- `app/profile.py:112` - path generation\n\n## Suggested Fix\n1. Change `uploads/abc123.jpg` to `f\"uploads/{self.file_id}.jpg\"`\n2. Change dimension threshold from 200 to 100"
+    }
+  },
+  {
+    "repo_name": "acme/api-gateway",
+    "branch": "main",
+    "commit_sha": "c9e8f1a3d5b7c2e4f6a8b1d3c5e7f9a2b4d6c8e1f",
+    "pipeline_id": "github-12347",
+    "environment": "production",
+    "status": "failed",
+    "test_suite_name": "e2e",
+    "failed_test_names": ["test_concurrent_api_calls", "test_rate_limit_exceeded"],
+    "timestamp": "2025-01-12T08:00:00Z",
+    "raw_log_text": "FAILED tests/test_e2e.py::test_concurrent_api_calls\nError: asyncio.TimeoutError: Request to /api/v2/search timed out after 30s\nThe operation exceeded its deadline\n\ntest_rate_limit_exceeded\n  File \"tests/test_e2e.py\", line 201, in test_rate_limit_exceeded\n    assert response.status_code == 429\nE   AssertionError: assert 200 == 429\nRate limiting not applied correctly\n\n2 failed, 15 passed, 3 skipped in 156.7s",
+    "triage": {
+      "failure_category": "timeout_performance_issue",
+      "confidence_score": 0.81,
+      "summary": "Search endpoint times out under concurrent load; rate limiter not applying 429 responses",
+      "root_cause": "The /api/v2/search endpoint does not have rate limiting middleware applied and the concurrent request test exhausts the backend thread pool, causing timeouts. The rate limiter is configured but the middleware chain order is incorrect.",
+      "suggested_steps": ["1. Add rate limiting middleware to the /api/v2/search route", "2. Move rate limiter above thread-pool middleware in app.py", "3. Increase thread pool size for search endpoint", "4. Consider adding a circuit breaker for the search service"],
+      "owner_guess": "api-platform",
+      "issue_title": "[CI] Search endpoint timeouts + rate limiter not applying 429",
+      "issue_body": "## Summary\nTwo e2e tests are failing: search endpoint timeouts under concurrent load, and rate limiting is not returning 429 status codes.\n\n## Root Cause\n1. Rate limiter middleware is not applied to /api/v2/search route\n2. Thread pool exhausted by concurrent requests causing asyncio.TimeoutError\n\n## Tests Affected\n- `test_concurrent_api_calls` - times out after 30s\n- `test_rate_limit_exceeded` - returns 200 instead of 429"
+    }
+  },
+  {
+    "repo_name": "acme/checkout-service",
+    "branch": "feat/stripe-v3",
+    "commit_sha": "d2f7a5b9c4e8d1f3a7c9b2e4f6d8a1c3b5e7f9d2a",
+    "pipeline_id": "github-12348",
+    "environment": "staging",
+    "status": "failed",
+    "test_suite_name": "unit",
+    "failed_test_names": ["test_stripe_create_payment_intent"],
+    "timestamp": "2025-01-13T11:45:00Z",
+    "raw_log_text": "FAILED tests/test_stripe.py::test_stripe_create_payment_intent\nTraceback (most recent call last):\n  File \"tests/test_stripe.py\", line 18, in test_stripe_create_payment_intent\n    mock_stripe.PaymentIntent.create.assert_called_once_with(\n        amount=1000, currency='usd', metadata={'order_id': '12345'}\n    )\nE   AssertionError: expected call.create(amount=1000, currency='usd', metadata={'order_id': '12345'})\nE   got call.create(amount=1000, currency='usd', metadata={'order_id': '12345', 'source': 'web'})\nE   +  where extra call args: source='web'\n\n1 failed, 28 passed in 8.2s",
+    "triage": {
+      "failure_category": "test_assertion_failure",
+      "confidence_score": 0.94,
+      "summary": "Mock assertion in stripe test doesn't account for new 'source' metadata field",
+      "root_cause": "The `test_stripe_create_payment_intent` test was written before the 'source' field was added to payment intents. The production code now passes `source='web'` in metadata, causing the mock assertion to fail. The test needs to be updated to expect this new field.",
+      "suggested_steps": ["1. Update the mock assertion to include source='web' in expected call", "2. Verify the source field behavior matches product requirements", "3. Check if other stripe tests need similar updates", "4. Add a comment documenting the source field requirement"],
+      "owner_guess": "payments-team",
+      "issue_title": "[CI] Stripe payment intent test mock assertion outdated after feature change",
+      "issue_body": "## Summary\nThe stripe payment intent unit test fails because it doesn't expect the new `source='web'` metadata field that was added in the feat/stripe-v3 branch.\n\n## Root Cause\nTest assertion is stale — it was written before the `source` field was added to payment intent creation.\n\n## Fix Required\nUpdate `tests/test_stripe.py:18` to:\n```python\nmock_stripe.PaymentIntent.create.assert_called_once_with(\n    amount=1000, currency='usd', metadata={'order_id': '12345', 'source': 'web'}\n)\n```"
+    }
+  },
+  {
+    "repo_name": "acme/notifications-service",
+    "branch": "main",
+    "commit_sha": "e5a3c8d2f1b6e9a4c7d3f2b8e6a1c4d7f9b3e2a6c",
+    "pipeline_id": "github-12349",
+    "environment": "production",
+    "status": "failed",
+    "test_suite_name": "integration",
+    "failed_test_names": ["test_email_delivery", "test_sms_delivery", "test_push_notification"],
+    "timestamp": "2025-01-14T16:20:00Z",
+    "raw_log_text": "FAILED tests/test_notifications.py::test_email_delivery\nModuleNotFoundError: No module named 'sendgrid'\nImport Error: cannot import name 'SendGridClient' from 'sendgrid'\n\ntest_sms_delivery\nModuleNotFoundError: No module named 'twilio'\n\ntest_push_notification\nModuleNotFoundError: No module named 'firebase_admin'\n\n3 failed, 12 passed in 5.3s",
+    "triage": {
+      "failure_category": "dependency_configuration_issue",
+      "confidence_score": 0.98,
+      "summary": "Notification service CI pipeline fails due to missing third-party dependencies (sendgrid, twilio, firebase_admin)",
+      "root_cause": "The CI environment's requirements.txt does not include sendgrid, twilio, or firebase-admin packages. These are optional dependencies that were supposed to be installed via an optional extras group (notifications[all]) but the CI pipeline only runs `pip install -r requirements.txt` without the extras.",
+      "suggested_steps": ["1. Update requirements.txt to include optional notification dependencies", "2. Alternatively update CI pipeline to install with: pip install -r requirements.txt -r requirements-notifications.txt", "3. Add a CI matrix step to verify notification features compile", "4. Document optional dependencies in README"],
+      "owner_guess": "notifications-team",
+      "issue_title": "[CI] Notification service tests fail due to missing third-party dependencies",
+      "issue_body": "## Summary\nAll notification integration tests fail with `ModuleNotFoundError` for sendgrid, twilio, and firebase_admin. These are optional dependencies that are not in requirements.txt.\n\n## Root Cause\nCI pipeline uses `pip install -r requirements.txt` but notification packages are in `requirements-notifications.txt` or in an extras group.\n\n## Tests Affected\n- test_email_delivery (sendgrid)\n- test_sms_delivery (twilio)\n- test_push_notification (firebase_admin)\n\n## Fix\nUpdate CI step to install all extras: `pip install -r requirements.txt[all]`"
+    }
+  }
+]
