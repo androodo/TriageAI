@@ -1,8 +1,8 @@
-# BuildLens AI - AI-Powered CI Failure Triage Platform
+# TriageAI - AI-Powered CI Failure Triage Platform
 
-## What is BuildLens AI?
+## What is TriageAI?
 
-BuildLens AI is an intelligent CI failure triage platform that automatically diagnoses CI/CD failures by:
+TriageAI is an intelligent CI failure triage platform that automatically diagnoses CI/CD failures by:
 
 1. **Ingesting CI run data** — capturing logs, metadata, and test results from your pipelines
 2. **Parsing and structuring failure logs** — extracting stack traces, exception names, and error patterns
@@ -18,7 +18,7 @@ graph TB
         A[Python Test Suite]
     end
 
-    subgraph Ingest["BuildLens Backend"]
+    subgraph Ingest["TriageAI Backend"]
         B[Ingestion API]
         C[Log Parser Service]
         D[Embedding Service]
@@ -50,10 +50,10 @@ graph TB
     F --> G
     G --> H
     J -->|GET /api/runs| B
-    K -->|GET /api/runs/{id}| B
-    K -->|POST /api/runs/{id}/triage| F
-    K -->|GET /api/runs/{id}/similar| E
-    L -->|POST /api/runs/{id}/issue-draft| G
+    K -->|GET /api/runs/:id| B
+    K -->|POST /api/runs/:id/triage| F
+    K -->|GET /api/runs/:id/similar| E
+    L -->|POST /api/runs/:id/issue-draft| G
 ```
 
 ## Prerequisites
