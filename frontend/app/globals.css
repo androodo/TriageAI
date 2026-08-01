@@ -3,33 +3,80 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
+  --card-foreground: 222 47% 11%;
+  --primary: 173 58% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 30% 96%;
+  --muted-foreground: 215 16% 42%;
+  --accent: 173 45% 94%;
+  --accent-foreground: 173 58% 24%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 24% 90%;
+  --input: 214 24% 90%;
+  --ring: 173 58% 32%;
+  --radius: 0.75rem;
+  --surface: 210 40% 98%;
 }
 
 * {
   border-color: hsl(var(--border));
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply bg-gray-50 text-gray-900;
+  min-height: 100vh;
+  color: hsl(var(--foreground));
+  background:
+    radial-gradient(1200px 500px at 10% -10%, hsl(173 55% 92% / 0.7), transparent 55%),
+    radial-gradient(900px 420px at 95% 0%, hsl(210 80% 94% / 0.8), transparent 50%),
+    hsl(var(--background));
+  font-feature-settings: "ss01" on, "cv11" on;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen;
+  }
+
+  .app-header {
+    @apply sticky top-0 z-20 border-b border-slate-200/80 bg-white/75 backdrop-blur-md;
+  }
+
+  .app-container {
+    @apply mx-auto max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .status-failed {
+    @apply inline-flex items-center gap-1.5 rounded-md bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-200;
+  }
+
+  .status-passed {
+    @apply inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200;
+  }
+
+  .category-chip {
+    @apply inline-flex items-center rounded-md bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-800 ring-1 ring-inset ring-teal-200;
+  }
+
+  .log-block {
+    @apply overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-[13px] leading-relaxed text-slate-800;
+  }
+
+  .meta-label {
+    @apply text-xs font-medium uppercase tracking-wide text-slate-500;
+  }
+
+  .meta-value {
+    @apply mt-1 text-sm text-slate-900;
+  }
 }
