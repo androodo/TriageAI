@@ -111,7 +111,7 @@ curl http://localhost:8000/api/health
 | `POST` | `/api/runs/ingest` | Ingest a CI run |
 | `GET` | `/api/runs` | List all CI runs (paginated) |
 | `GET` | `/api/runs/{id}` | Get a single CI run |
-| `POST` | `/api/runs/{id}/triage` | Run AI triage on a failure |
+| `POST` | `/api/runs/{id}/triage` | Run TriageAI analysis on a failure |
 | `GET` | `/api/runs/{id}/similar` | Find similar past failures |
 | `POST` | `/api/runs/{id}/issue-draft` | Generate an issue draft |
 
@@ -150,11 +150,11 @@ npm test
 
 ## Triggering the Demo CI Workflow
 
-The example project in `examples/python-sample/` includes a GitHub Actions workflow that runs tests and sends results to BuildLens AI.
+The example project in `examples/python-sample/` includes a GitHub Actions workflow that runs tests and sends results to TriageAI.
 
 ```bash
 cd examples/python-sample
-# View the workflow at .github/workflows/buildlens-workflow.yml
+# View the workflow at .github/workflows/triageai-workflow.yml
 ```
 
 ### Local Demo Script

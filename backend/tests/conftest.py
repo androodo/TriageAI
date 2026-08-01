@@ -1,4 +1,4 @@
-"""Pytest configuration and fixtures for BuildLens AI backend tests."""
+"""Pytest configuration and fixtures for TriageAI backend tests."""
 
 from __future__ import annotations
 

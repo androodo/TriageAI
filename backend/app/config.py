@@ -10,7 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """All configuration for the BuildLens AI backend."""
+    """All configuration for the TriageAI backend."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # ── Application ─────────────────────────────────────────────────────────────
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
-    app_name: str = "BuildLens AI"
+    app_name: str = "TriageAI"
     app_version: str = "0.1.0"
     api_prefix: str = "/api"
     cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]

@@ -1,6 +1,6 @@
-# BuildLens AI - Sample Python Project
+# TriageAI - Sample Python Project
 
-This is a demo project that intentionally includes failures to showcase BuildLens AI's CI failure triage capabilities.
+This is a demo project that intentionally includes failures to showcase TriageAI's CI failure triage capabilities.
 
 ## Tests
 

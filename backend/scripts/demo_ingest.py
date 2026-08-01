@@ -1,4 +1,4 @@
-"""Demo ingestion script — loads sample CI run to BuildLens for local testing."""
+"""Demo ingestion script — loads sample CI run to TriageAI for local testing."""
 
 import asyncio
 import json
@@ -50,12 +50,12 @@ AssertionError: expected 200 got 500
 
 
 if __name__ == "__main__":
-    print("🚀 Ingesting demo CI run to BuildLens AI...")
+    print("🚀 Ingesting demo CI run to TriageAI...")
     try:
         asyncio.run(ingest_demo_run())
     except Exception as e:
         print(f"\n❌ Error: {e}")
         print("\n📝 Make sure:")
-        print("   1. BuildLens backend is running at http://localhost:8000")
+        print("   1. TriageAI backend is running at http://localhost:8000")
         print("   2. PostgreSQL is running (docker-compose up postgres backend)")
         print("   3. OPENAI_API_KEY is set (see .env.example)")

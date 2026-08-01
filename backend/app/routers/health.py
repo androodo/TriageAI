@@ -22,7 +22,7 @@ class HealthResponse(BaseModel):
 
 @router.get("", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
-    """Check the health of all BuildLens AI dependencies."""
+    """Check the health of all TriageAI dependencies."""
     # Check database connectivity
     db_status = "healthy"
     try:

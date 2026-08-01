@@ -1,4 +1,4 @@
-name: BuildLens AI CI Demo
+name: TriageAI CI Demo
 
 on:
   push:
@@ -47,7 +47,7 @@ jobs:
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "total_tests=$TOTAL" >> $GITHUB_OUTPUT
 
-      - name: Send to BuildLens AI
+      - name: Send to TriageAI
         if: always()
         run: |
           REPO_NAME=${{ github.repository }}
@@ -90,15 +90,15 @@ jobs:
           echo "Payload:"
           echo "$PAYLOAD" | jq '.'
 
-          # Send to BuildLens ingestion API
-          BUILDLENS_URL="${{ secrets.BUILDLENS_API_URL }}"
-          if [ -n "$BUILDLENS_URL" ]; then
-            echo "Sending CI run to BuildLens AI at $BUILDLENS_URL..."
-            curl -X POST "${BUILDLENS_URL}/api/runs/ingest" \
+          # Send to TriageAI ingestion API
+          TRIAGEAI_URL="${{ secrets.TRIAGEAI_API_URL }}"
+          if [ -n "$TRIAGEAI_URL" ]; then
+            echo "Sending CI run to TriageAI at $TRIAGEAI_URL..."
+            curl -X POST "${TRIAGEAI_URL}/api/runs/ingest" \
               -H "Content-Type: application/json" \
               -d "$PAYLOAD" \
-              || echo "Failed to send to BuildLens, continuing..."
+              || echo "Failed to send to TriageAI, continuing..."
           else
-            echo "BUILDLENS_API_URL not configured, skipping ingestion."
-            echo "To enable, add BUILDLENS_API_URL secret (e.g., http://localhost:8000 for local demo)"
+            echo "TRIAGEAI_API_URL not configured, skipping ingestion."
+            echo "To enable, add TRIAGEAI_API_URL secret (e.g., http://localhost:8000 for local demo)"
           fi

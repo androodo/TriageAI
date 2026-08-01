@@ -1,4 +1,4 @@
-# Alembic migrations for BuildLens AI
+# Alembic migrations for TriageAI
 
 from logging.config import fileConfig
 

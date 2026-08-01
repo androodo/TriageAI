@@ -1,8 +1,8 @@
-# BuildLens AI — Project Specification
+# TriageAI — Project Specification
 
 ## Overview
 
-BuildLens AI is an internal developer platform that ingests CI/CD test run data, parses failure logs, performs AI-powered failure triage using embeddings and an LLM, finds similar historical failures, and generates actionable issue drafts.
+TriageAI is an internal developer platform that ingests CI/CD test run data, parses failure logs, performs AI-powered failure triage using embeddings and an LLM, finds similar historical failures, and generates actionable issue drafts.
 
 ## Tech Stack
 
@@ -39,7 +39,7 @@ BuildLens AI is an internal developer platform that ingests CI/CD test run data,
 - Return full CI run with embedded FailureLog, TriageResult, and SimilarFailures
 - Include parsed log data, triage classification, and AI summary
 
-#### 4. AI Triage (POST /api/runs/{id}/triage)
+#### 4. TriageAI (POST /api/runs/{id}/triage)
 - Run only on failed CI runs
 - Use LogParser output + failure metadata as prompt context
 - Call LLM to classify failure category (8 categories)
@@ -135,7 +135,7 @@ The LogParser service must extract:
 
 Output: structured JSON with extracted data + cleaned log text (noise removed, relevant lines kept)
 
-### AI Triage Prompt Strategy
+### TriageAI Prompt Strategy
 
 System prompt: Role = "Senior SRE / DevOps engineer with deep CI/CD debugging experience"
 

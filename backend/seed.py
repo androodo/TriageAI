@@ -92,5 +92,5 @@ async def seed() -> None:
 
 
 if __name__ == "__main__":
-    print("🌱 Seeding BuildLens AI database...")
+    print("🌱 Seeding TriageAI database...")
     asyncio.run(seed())

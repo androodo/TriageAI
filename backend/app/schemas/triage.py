@@ -11,7 +11,7 @@ from app.models.triage_result import FailureCategory
 
 
 class TriageResultResponse(BaseModel):
-    """Full AI triage result response."""
+    """Full TriageAI result response."""
 
     id: UUID
     ci_run_id: UUID
