@@ -1,4 +1,4 @@
-"""BuildLens AI — FastAPI Application Entry Point."""
+"""TriageAI — FastAPI Application Entry Point."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from structlog import configure_logging
 
 from app.config import settings
 from app.database import engine

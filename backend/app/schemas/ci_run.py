@@ -52,6 +52,7 @@ class FailureLogSummary(BaseModel):
     """Summary of a FailureLog for embedding in CIRunResponse."""
 
     id: UUID
+    cleaned_log_text: str = ""
     exception_names: list[str] = Field(default_factory=list)
     failed_tests: list[str] = Field(default_factory=list)
     timeout_indicators: bool = False
@@ -67,8 +68,12 @@ class TriageResultSummary(BaseModel):
     id: UUID
     failure_category: str
     summary: str
+    root_cause: str = ""
+    suggested_steps: list[str] = Field(default_factory=list)
     confidence_score: float
     owner_guess: str | None = None
+    issue_title: str | None = None
+    issue_body: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -78,6 +83,9 @@ class IssueDraftSummary(BaseModel):
 
     id: UUID
     title: str
+    body: str = ""
+    labels: list[str] = Field(default_factory=list)
+    assignee_guess: str | None = None
     format: str
 
     model_config = {"from_attributes": True}

@@ -10,6 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.config import settings
 from app.database import get_db
@@ -173,8 +174,8 @@ async def list_ci_runs(
     - `repo_name`: Filter by repository name
     - `environment`: Filter by deployment environment (production, staging, etc.)
     """
-    # Build base query
-    query = select(CIRun)
+    # Build base query with triage eagerly loaded (async-safe)
+    query = select(CIRun).options(selectinload(CIRun.triage_result))
 
     # Apply filters
     where_clauses: list = []
@@ -197,7 +198,7 @@ async def list_ci_runs(
     query = query.order_by(CIRun.timestamp.desc()).offset((page - 1) * page_size).limit(page_size)
 
     result = await db.execute(query)
-    ci_runs = result.scalars().all()
+    ci_runs = result.scalars().unique().all()
 
     # Build response items (join triage for summary if available)
     items: list[CIRunListItem] = []
@@ -231,7 +232,15 @@ async def get_ci_run(
     db: AsyncSession = Depends(get_db),
 ) -> CIRunResponse:
     """Get full details for a single CI run including failure logs and triage results."""
-    result = await db.execute(select(CIRun).where(CIRun.id == run_id))
+    result = await db.execute(
+        select(CIRun)
+        .where(CIRun.id == run_id)
+        .options(
+            selectinload(CIRun.failure_log),
+            selectinload(CIRun.triage_result),
+            selectinload(CIRun.issue_draft),
+        )
+    )
     ci_run = result.scalar_one_or_none()
 
     if not ci_run:
