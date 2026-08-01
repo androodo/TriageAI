@@ -1,4 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_PREFIX = API_BASE.endsWith("/api") ? API_BASE : `${API_BASE.replace(/\/$/, "")}/api`
 
 export type CIStatus = "passed" | "failed" | "skipped"
 
@@ -106,7 +107,7 @@ export interface IssueDraft {
 }
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${endpoint}`
+  const url = `${API_PREFIX}${endpoint}`
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -125,7 +126,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   // Health check
-  health: () => request("/health/health"),
+  health: () => request("/health"),
 
   // List CI runs
   listRuns: (params?: {
