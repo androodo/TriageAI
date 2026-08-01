@@ -12,6 +12,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from pgvector.sqlalchemy import Vector
 
 # revision identifiers
 revision: str = "001_initial"
@@ -69,7 +70,7 @@ def upgrade() -> None:
         sa.Column("timeout_indicators", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("dependency_errors", postgresql.JSONB, nullable=False, server_default="[]"),
         sa.Column("infrastructure_errors", postgresql.JSONB, nullable=False, server_default="[]"),
-        sa.Column("embedding", postgresql.ARRAY(sa.Float()), nullable=True),
+        sa.Column("embedding", Vector(1536), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
     )

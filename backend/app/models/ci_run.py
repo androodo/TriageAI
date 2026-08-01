@@ -42,7 +42,12 @@ class CIRun(Base, TimestampMixin):
     pipeline_id: Mapped[str] = mapped_column(String(255), nullable=False)
     environment: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     status: Mapped[CIStatus] = mapped_column(
-        SAEnum(CIStatus, name="ci_status", create_constraint=True),
+        SAEnum(
+            CIStatus,
+            name="ci_status",
+            values_callable=lambda enum: [e.value for e in enum],
+            create_constraint=True,
+        ),
         nullable=False,
         index=True,
     )

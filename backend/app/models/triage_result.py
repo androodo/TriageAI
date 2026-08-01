@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from enum import Enum
 
-from sqlalchemy import Float, ForeignKey, String, Text
+from sqlalchemy import Enum as SAEnum, Float, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -48,6 +48,12 @@ class TriageResult(Base, TimestampMixin):
 
     # ── Classification ──────────────────────────────────────────────────────────
     failure_category: Mapped[FailureCategory] = mapped_column(
+        SAEnum(
+            FailureCategory,
+            name="failure_category",
+            values_callable=lambda enum: [e.value for e in enum],
+            create_constraint=True,
+        ),
         nullable=False,
     )
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)

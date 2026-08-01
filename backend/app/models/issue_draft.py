@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from enum import Enum
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Enum as SAEnum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -48,6 +48,12 @@ class IssueDraft(Base, TimestampMixin):
 
     # ── Format ──────────────────────────────────────────────────────────────────
     format: Mapped[IssueFormat] = mapped_column(
+        SAEnum(
+            IssueFormat,
+            name="issue_format",
+            values_callable=lambda enum: [e.value for e in enum],
+            create_constraint=True,
+        ),
         default=IssueFormat.GITHUB,
         nullable=False,
     )
