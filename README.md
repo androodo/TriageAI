@@ -175,14 +175,6 @@ python -m scripts.demo_ingest
 > _Run detail page with triage results and similar failures_
 > ![Run Detail Placeholder]
 
-## Resume Bullet Examples
-
-- **Designed and built** an AI-powered CI failure triage platform serving as the backbone of an internal developer productivity tool
-- **Reduced MTTR** by implementing RAG-based similar failure retrieval using pgvector embeddings, cutting diagnostic time for recurring failures
-- **Architected** a FastAPI backend with SQLAlchemy ORM, Alembic migrations, and Pydantic validation serving a Next.js frontend dashboard
-- **Integrated** OpenAI GPT-4o-mini for automatic failure classification, root cause analysis, and actionable issue generation
-- **Containerized** the full stack with Docker Compose for reproducible local development and CI/CD environments
-- **Built** a log parsing engine that extracts stack traces, exceptions, and error patterns from raw CI output
 
 ## Future Improvements
 
