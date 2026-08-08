@@ -28,12 +28,14 @@ export default function RunDetailPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true)
+        setError(null)
         const data = await api.getRun(params.id as string)
         setRun(data)
       } catch (err) {
@@ -48,15 +50,21 @@ export default function RunDetailPage() {
   async function handleTriage() {
     try {
       setActionLoading("triage")
+      setActionError(null)
       await api.triageRun(params.id as string, true)
       const refreshed = await api.getRun(params.id as string)
       setRun(refreshed)
 
       setActionLoading("similar")
-      const similar = await api.similarFailures(params.id as string)
-      setSimilarFailures(similar.items)
+      try {
+        const similar = await api.similarFailures(params.id as string)
+        setSimilarFailures(similar.items)
+      } catch {
+        // Similar search is optional after triage
+        setSimilarFailures([])
+      }
     } catch (err) {
-      setError((err as Error).message)
+      setActionError((err as Error).message)
     } finally {
       setActionLoading(null)
     }
@@ -65,10 +73,11 @@ export default function RunDetailPage() {
   async function handleGenerateIssue() {
     try {
       setActionLoading("issue")
+      setActionError(null)
       const data = await api.generateIssueDraft(params.id as string, "github", true)
       setIssueDraft(data)
     } catch (err) {
-      setError((err as Error).message)
+      setActionError((err as Error).message)
     } finally {
       setActionLoading(null)
     }
@@ -77,10 +86,11 @@ export default function RunDetailPage() {
   async function handleFindSimilar() {
     try {
       setActionLoading("similar")
+      setActionError(null)
       const data = await api.similarFailures(params.id as string)
       setSimilarFailures(data.items)
     } catch (err) {
-      setError((err as Error).message)
+      setActionError((err as Error).message)
     } finally {
       setActionLoading(null)
     }
@@ -168,6 +178,12 @@ export default function RunDetailPage() {
       </header>
 
       <main className="app-container space-y-5 py-8">
+        {actionError && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {actionError}
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>CI run details</CardTitle>

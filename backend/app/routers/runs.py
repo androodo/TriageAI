@@ -17,7 +17,7 @@ from app.database import get_db
 from app.models.ci_run import CIStatus, CIRun
 from app.models.failure_log import FailureLog
 from app.models.issue_draft import IssueDraft, IssueFormat
-from app.models.triage_result import TriageResult
+from app.models.triage_result import FailureCategory, TriageResult
 from app.schemas.ci_run import (
     CIRunCreate,
     CIRunFilterParams,
@@ -286,7 +286,14 @@ async def triage_ci_run(
     - Estimated owner/team
     - Generated issue title and body
     """
-    result = await db.execute(select(CIRun).where(CIRun.id == run_id))
+    result = await db.execute(
+        select(CIRun)
+        .where(CIRun.id == run_id)
+        .options(
+            selectinload(CIRun.failure_log),
+            selectinload(CIRun.triage_result),
+        )
+    )
     ci_run = result.scalar_one_or_none()
 
     if not ci_run:
@@ -315,10 +322,12 @@ async def triage_ci_run(
         test_suite_name=ci_run.test_suite_name,
     )
 
+    category = FailureCategory(triage_result["failure_category"])
+
     # Create or update triage result
     if ci_run.triage_result:
         triage = ci_run.triage_result
-        triage.failure_category = triage_result["failure_category"]
+        triage.failure_category = category
         triage.confidence_score = triage_result["confidence_score"]
         triage.owner_guess = triage_result.get("owner_guess")
         triage.summary = triage_result["summary"]
@@ -330,7 +339,7 @@ async def triage_ci_run(
     else:
         triage = TriageResult(
             ci_run_id=ci_run.id,
-            failure_category=triage_result["failure_category"],
+            failure_category=category,
             confidence_score=triage_result["confidence_score"],
             owner_guess=triage_result.get("owner_guess"),
             summary=triage_result["summary"],
@@ -343,6 +352,7 @@ async def triage_ci_run(
         db.add(triage)
 
     await db.commit()
+    await db.refresh(triage)
     log.info("Triage complete", run_id=str(run_id), category=triage_result["failure_category"])
     return TriageResultResponse.model_validate(triage)
 
@@ -361,7 +371,11 @@ async def find_similar_failures(
     Returns the top 5 most similar past failures with similarity scores,
     including their root cause categories and suggested steps.
     """
-    result = await db.execute(select(CIRun).where(CIRun.id == run_id))
+    result = await db.execute(
+        select(CIRun)
+        .where(CIRun.id == run_id)
+        .options(selectinload(CIRun.failure_log))
+    )
     ci_run = result.scalar_one_or_none()
 
     if not ci_run:
@@ -376,7 +390,7 @@ async def find_similar_failures(
     similar = await similarity_svc.find_similar(
         ci_run_id=ci_run.id,
         current_embedding=embedding,
-        repo_name=settings.similarity_search_filter or ci_run.repo_name,
+        repo_name=ci_run.repo_name,
         limit=settings.similar_failures_count,
     )
 
@@ -407,7 +421,15 @@ async def generate_issue_draft(
     - Suggested labels (bug, ci-failure, area/*)
     - Assignee/team guess
     """
-    result = await db.execute(select(CIRun).where(CIRun.id == run_id))
+    result = await db.execute(
+        select(CIRun)
+        .where(CIRun.id == run_id)
+        .options(
+            selectinload(CIRun.failure_log),
+            selectinload(CIRun.triage_result),
+            selectinload(CIRun.issue_draft),
+        )
+    )
     ci_run = result.scalar_one_or_none()
 
     if not ci_run:
