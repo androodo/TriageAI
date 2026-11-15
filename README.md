@@ -167,14 +167,6 @@ cd backend
 python -m scripts.demo_ingest
 ```
 
-## Screenshots
-
-> _Dashboard showing recent CI runs with status, repo, branch, and AI summary_
-> ![Dashboard Placeholder]
-
-> _Run detail page with triage results and similar failures_
-> ![Run Detail Placeholder]
-
 
 ## Future Improvements
 
